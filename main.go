@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/aduwoayooluwa/go-rss-scraper/db"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
@@ -20,6 +22,19 @@ func main() {
 
 	router := chi.NewRouter()
 
+	// ?  mongo db connection
+	ctx := context.TODO()
+
+	config := db.MongoDBConfig{
+		URI: os.Getenv("MONGODB_URI"),
+	}
+
+	if err := db.ConnectMongoDB(ctx, config); err != nil {
+		log.Fatalf("Error initializing mongo DB client: %v", err)
+	}
+
+	defer db.DisconnectMongoDB(ctx)
+
 	router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
@@ -31,8 +46,10 @@ func main() {
 
 	//  creating routers
 	v1Router := chi.NewRouter()
+
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/error", handlerErr)
+	v1Router.Get("/get-user-data", handleGetUserData)
 
 	router.Mount("/v1", v1Router)
 

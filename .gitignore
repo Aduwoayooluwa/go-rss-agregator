@@ -2,3 +2,7 @@ go-rss-scraper.exe
 .vscode/
 rssagg
 .env
+
+vendor/
+vendor
+.gitignore
