@@ -19,6 +19,7 @@ func main() {
 	godotenv.Load(".env")
 
 	portString := os.Getenv("PORT")
+	dbURI := os.Getenv("MONGODB_URI")
 
 	router := chi.NewRouter()
 
@@ -26,7 +27,7 @@ func main() {
 	ctx := context.TODO()
 
 	config := db.MongoDBConfig{
-		URI: os.Getenv("MONGODB_URI"),
+		URI: dbURI,
 	}
 
 	if err := db.ConnectMongoDB(ctx, config); err != nil {
@@ -49,8 +50,8 @@ func main() {
 
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/error", handlerErr)
-	v1Router.Get("/get-user-data", handleGetUserData)
-
+	v1Router.Get("/get-user/{userId}", handleGetUserData)
+	v1Router.Post("/create-user", handleCreateUser)
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
@@ -59,6 +60,7 @@ func main() {
 	}
 
 	log.Printf("Server starting on port %v", portString)
+	log.Printf("db Url %v", dbURI)
 	err := srv.ListenAndServe()
 
 	if err != nil {

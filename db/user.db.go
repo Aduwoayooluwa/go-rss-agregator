@@ -5,10 +5,26 @@ import (
 
 	"github.com/aduwoayooluwa/go-rss-scraper/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
+func GetUserById(ctx context.Context, userId string) (*models.User, error) {
+	collection := GetMongoClient().Database("RSS-aggr").Collection("users")
+
+	var user models.User
+
+	err := collection.FindOne(ctx, bson.M{"ID": userId}).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
 func CreateUser(ctx context.Context, user models.User) error {
-	collection := GetMongoClient().Database("").Collection("users")
+	collection := GetMongoClient().Database("RSS-aggr").Collection("users")
 
 	_, err := collection.InsertOne(ctx, user)
 
@@ -21,7 +37,7 @@ func CreateUser(ctx context.Context, user models.User) error {
 
 func GetAllUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
-	collection := GetMongoClient().Database("").Collection("users")
+	collection := GetMongoClient().Database("RSS-aggr").Collection("users")
 
 	cursor, err := collection.Find(ctx, bson.D{{}})
 
