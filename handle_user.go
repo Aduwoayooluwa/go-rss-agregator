@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/aduwoayooluwa/go-rss-scraper/db"
 	"github.com/aduwoayooluwa/go-rss-scraper/models"
@@ -27,10 +28,20 @@ func handleGetUserData(w http.ResponseWriter, r *http.Request) {
 	user, err := db.GetUserById(ctx, userId)
 
 	if err != nil {
+		if strings.Contains(err.Error(), "invalid user ID format") {
+			respondWithError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		if err.Error() == fmt.Sprintf("no user found with ID %s", userId) {
+			respondWithError(w, http.StatusNotFound, err.Error())
+			return
+		}
 		respondWithError(w, http.StatusInternalServerError, "Failed to retrieve users: "+err.Error())
 		return
 	}
-
+	// fmt.Printf("userId %v \n", userId)
+	// fmt.Printf("user info %v", user)
 	respondWithJSON(w, http.StatusOK, user)
 }
 

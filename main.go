@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/aduwoayooluwa/go-rss-scraper/db"
+	"github.com/aduwoayooluwa/go-rss-scraper/middleware"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
@@ -50,8 +51,13 @@ func main() {
 
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/error", handlerErr)
-	v1Router.Get("/get-user/{userId}", handleGetUserData)
-	v1Router.Post("/create-user", handleCreateUser)
+
+	// (func(r chi.Router) {
+	//router.Use()
+
+	v1Router.With(middleware.TokenAuthMiddleware).Get("/get-user/{userId}", handleGetUserData)
+	v1Router.With(middleware.TokenAuthMiddleware).Post("/create-user", handleCreateUser)
+	// })
 	router.Mount("/v1", v1Router)
 
 	srv := &http.Server{
